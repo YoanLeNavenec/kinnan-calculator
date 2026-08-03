@@ -24,6 +24,7 @@ def get_total_multiplier(doublers):
   
 def tap_source(pool, source, multiplier):
   tap = source["amount"] * multiplier
+  tap += 1
   add_mana(pool, source["color"], tap)
   return pool
 
@@ -55,3 +56,19 @@ def can_afford(pool, generic_cost, pips):
     leftover += available
     
   return leftover >= generic_cost
+
+def activate_kinnan(pool, generic_cost, pips):
+  if not can_afford(pool, generic_cost, pips):
+    return None
+  else:
+    pool = pay_pips(pool, pips)
+    pool = pay_cost(pool, generic_cost)
+    return pool
+
+def get_reduced_cost(base_cost, reducers):
+  reduced_cost = 0
+  for reducer in reducers:
+    if reducer["active"]:
+      reduced_cost -= reducer["reduction"]
+  return max(0, base_cost + reduced_cost)
+
