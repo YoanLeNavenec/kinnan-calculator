@@ -123,7 +123,9 @@ def add_to_battlefield(battlefield, name, permanent_type):
   battlefield.append({"name": name, "tapped": False, "type": permanent_type})
   return battlefield
 
-battlefield = []
-battlefield = add_to_battlefield(battlefield, "Llanowar Elves", "creature")
-battlefield = add_to_battlefield(battlefield, "Sol Ring", "artifact")
-print(battlefield)
+def enduring_vitality_count(battlefield):
+  count = 0
+  for permanent in battlefield:
+    if permanent["type"] == "creature" and not permanent["tapped"]:
+      count += 1
+  return count
