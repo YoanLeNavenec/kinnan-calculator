@@ -33,6 +33,7 @@ sources = [
     {"name": "Fanatic of Rhonas",       "type": "creature", "color": "G",  "amount": None, "flexible": True},
     {"name": "Sanctum Weaver",          "type": "creature", "color": None, "amount": None, "flexible": True},
     {"name": "Bloom Tender",            "type": "creature", "color": None, "amount": None, "flexible": True},
+    {"name": "Shang-Chi, Master of Kung Fu", "type": "creature", "color": "None", "amount": 2, "flexible": True}
 ]
 
 reducers = [
