@@ -111,3 +111,14 @@ def is_infinite_loop(source, untap_cost, multiplier):
     return True
   else:
     return False
+
+def devoted_druid_total(source, multiplier, tap_twice = True):
+  single_tap = source["amount"] * multiplier + 1
+  if tap_twice:
+    return single_tap * 2
+  else:
+    return single_tap
+  
+druid = {"name": "Devoted Druid", "color": "green", "amount": 1, "type": "creature"}
+print(devoted_druid_total(druid, 1))
+print(devoted_druid_total(druid, 1, tap_twice=False))
