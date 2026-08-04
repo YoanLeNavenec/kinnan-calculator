@@ -72,3 +72,26 @@ def get_reduced_cost(base_cost, reducers):
       reduced_cost -= reducer["reduction"]
   return max(0, base_cost + reduced_cost)
 
+def find_untapped(battlefield, exclude_name):
+  for permanant in battlefield:
+    if not permanant["tapped"] and permanant["name"] != exclude_name:
+      return permanant
+  return None
+
+def tap_permanant(battlefield, name):
+  for permanant in battlefield:
+    if not permanant["tapped"] and permanant["name"] == name:
+      permanant["tapped"] = True
+      return True
+  return False
+
+def can_tap_with_extra(battlefield, name):
+  itself_untapped = False
+  for permanant in battlefield:
+    if permanant["name"] == name and not permanant["tapped"]:
+      itself_untapped = True
+  if not itself_untapped:
+    return False
+  result = find_untapped(battlefield, name)
+  return result is not None
+
