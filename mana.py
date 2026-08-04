@@ -118,7 +118,12 @@ def devoted_druid_total(source, multiplier, tap_twice = True):
     return single_tap * 2
   else:
     return single_tap
-  
-druid = {"name": "Devoted Druid", "color": "green", "amount": 1, "type": "creature"}
-print(devoted_druid_total(druid, 1))
-print(devoted_druid_total(druid, 1, tap_twice=False))
+
+def add_to_battlefield(battlefield, name, permanent_type):
+  battlefield.append({"name": name, "tapped": False, "type": permanent_type})
+  return battlefield
+
+battlefield = []
+battlefield = add_to_battlefield(battlefield, "Llanowar Elves", "creature")
+battlefield = add_to_battlefield(battlefield, "Sol Ring", "artifact")
+print(battlefield)
