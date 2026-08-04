@@ -73,25 +73,41 @@ def get_reduced_cost(base_cost, reducers):
   return max(0, base_cost + reduced_cost)
 
 def find_untapped(battlefield, exclude_name):
-  for permanant in battlefield:
-    if not permanant["tapped"] and permanant["name"] != exclude_name:
-      return permanant
+  for permanent in battlefield:
+    if not permanent["tapped"] and permanent["name"] != exclude_name:
+      return permanent
   return None
 
-def tap_permanant(battlefield, name):
-  for permanant in battlefield:
-    if not permanant["tapped"] and permanant["name"] == name:
-      permanant["tapped"] = True
+def tap_permanent(battlefield, name):
+  for permanent in battlefield:
+    if not permanent["tapped"] and permanent["name"] == name:
+      permanent["tapped"] = True
       return True
   return False
 
 def can_tap_with_extra(battlefield, name):
   itself_untapped = False
-  for permanant in battlefield:
-    if permanant["name"] == name and not permanant["tapped"]:
+  for permanent in battlefield:
+    if permanent["name"] == name and not permanent["tapped"]:
       itself_untapped = True
   if not itself_untapped:
     return False
   result = find_untapped(battlefield, name)
   return result is not None
 
+def tap_with_extra(pool, battlefield, source, multiplier):
+  if not can_tap_with_extra(battlefield, source["name"]):
+    return None
+  else:
+    tap_permanent(battlefield, source["name"])
+    result = find_untapped(battlefield, source["name"])
+    tap_permanent(battlefield, result["name"])
+    pool = tap_source(pool, source, multiplier)
+    return pool
+  
+def is_infinite_loop(source, untap_cost, multiplier):
+  one_tap = source["amount"] * multiplier + 1
+  if untap_cost < one_tap:
+    return True
+  else:
+    return False
