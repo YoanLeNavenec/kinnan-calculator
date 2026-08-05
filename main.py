@@ -81,10 +81,16 @@ canvas.pack(side="left", fill="both", expand=True)
 scrollbar.pack(side="right", fill="y")
 
 for source in sources:
+    card = ttk.Frame(scrollable_frame, relief="ridge", borderwidth=1, padding=5)
+    card.pack(fill="x", pady=2)
+    
     var = tk.BooleanVar()
-    check = ttk.Checkbutton(scrollable_frame, text=source["name"], variable=var)
+    check = ttk.Checkbutton(card, text=source["name"], variable=var)
     check.pack()
     source["var"] = var
+    
+    tap_button = ttk.Button(card, text="Tap")
+    tap_button.pack(anchor="w")
 
 root.after(3000, lambda: print([d["name"] for d in doublers if d["var"].get()],
                                 [r["name"] for r in reducers if r["var"].get()]))
