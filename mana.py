@@ -1,12 +1,12 @@
 def create_pool():
     # Create a pool of mana
     pool = {
-        "white": 0,
-        "blue": 0,
-        "black": 0,
-        "red": 0,
-        "green": 0,
-        "colorless": 0
+        "W": 0,
+        "U": 0,
+        "B": 0,
+        "R": 0,
+        "G": 0,
+        "C": 0
     }
     return pool
 
@@ -29,7 +29,7 @@ def tap_source(pool, source, multiplier):
   return pool
 
 def pay_cost(pool, amount):
-    for color in ["colorless", "green", "blue"]:
+    for color in ["C", "G", "U"]:
       pay = min(pool[color], amount)
       pool[color] -= pay
       amount -= pay
@@ -49,7 +49,7 @@ def can_afford(pool, generic_cost, pips):
       return False
   
   leftover = 0
-  for color in ["colorless", "green", "blue"]:
+  for color in ["C", "G", "U"]:
     available = pool[color]
     if color in pips:
       available -= 1

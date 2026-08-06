@@ -1,10 +1,37 @@
 import tkinter as tk
 from tkinter import ttk
 from cards import doublers, sources, reducers, creature_bonuses, untap_loop_sources, devoted_druid, extra_tap_sources
+from mana import create_pool, get_total_multiplier, tap_source
 
 root = tk.Tk()
 root.title("Kinnan Mana Calculator")
 root.geometry("600x400")
+
+pool = create_pool()
+
+# ---Pool Section ---
+pool_frame = ttk.Frame(root)
+pool_frame.pack(fill="x")
+
+pool_vars = {}
+for color in ["W", "U", "B", "R", "G", "C"]:
+    var = tk.StringVar(value=f"{color}: {pool[color]}")
+    label = ttk.Label(pool_frame, textvariable=var)
+    label.pack(side="left", padx=5)
+    pool_vars[color]= var
+    
+def update_pool_display():
+    for color in ["W", "U", "B", "R", "G", "C"]:
+        pool_vars[color].set(f"{color}: {pool[color]}")
+
+
+def tap_and_update(source):
+    for doubler in doublers:
+        doubler["active"] = doubler["var"].get()
+    multiplier = get_total_multiplier(doublers)
+    tap_source(pool, source, multiplier)
+    update_pool_display()
+
 
 # --- Doublers section ---
 doublers_open = True
@@ -89,7 +116,7 @@ for source in sources:
     check.pack()
     source["var"] = var
     
-    tap_button = ttk.Button(card, text="Tap")
+    tap_button = ttk.Button(card, text="Tap", command=lambda s=source: tap_and_update(s))
     tap_button.pack(anchor="w")
 
 root.after(3000, lambda: print([d["name"] for d in doublers if d["var"].get()],
