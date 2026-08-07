@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from cards import doublers, sources, reducers, creature_bonuses, untap_loop_sources, devoted_druid, extra_tap_sources
-from mana import create_pool, get_total_multiplier, tap_source
+from mana import create_pool, get_total_multiplier, tap_source, is_infinite_loop
 import io
 import os
 import urllib.request
