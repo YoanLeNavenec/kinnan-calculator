@@ -9,6 +9,7 @@ import urllib.parse
 import json
 from PIL import Image, ImageTk
 import time
+from tkinter import messagebox
 
 CACHE_DIR = "image_cache"
 
@@ -53,6 +54,19 @@ root.title("Kinnan Mana Calculator")
 root.geometry("600x400")
 
 pool = create_pool()
+batttlefield = []
+
+def sync_battlefield():
+    all_groups = [sources, untap_loop_sources, extra_tap_sources, [devoted_druid]]
+    for group in all_groups:
+        for card in group:
+            if card["var"].get():
+                already_there = False
+                for permanent in batttlefield:
+                    if permanent["name"] == card["name"]:
+                        already_there = True
+                if not already_there:
+                    add_to_battlefield(batttlefield, card["name"], card["type"])
 
 # ---Pool Section ---
 pool_frame = ttk.Frame(root)
@@ -168,5 +182,30 @@ for source in sources:
     
     tap_button = ttk.Button(card, text="Tap", command=lambda s=source: tap_and_update(s))
     tap_button.pack(anchor="w")
+    
+ttk.Label(root, text="Untap Loops").pack()
+for card in untap_loop_sources:
+    card_frame = ttk.Frame(root, relief="ridge", borderwidth=1, padding=5)
+    card_frame.pack(fill="x", pady=2)
+        
+    var = tk.BooleanVar()
+    check = ttk.Checkbutton(card_frame, text=card["name"], variable=var)
+    check.pack(anchor="w")
+    card["var"] = var
+    
+    tap_button = ttk.Button(card_frame, text="Tap", command=lambda s=card: tap_untap_loop(s))
+    tap_button.pack(anchor="w")  
+    
+# --- Infinite Loops section ---
+def tap_untap_loop(source):
+    for doubler in doublers:
+        doubler["active"] = doubler["var"].get()
+    multiplier = get_total_multiplier(doublers)
+    
+    if is_infinite_loop(source, source["untap_cost"], multiplier):
+        messagebox.showinfo("Infinite Mana!", f"{source['name']} is an infinite mana loop with your current board.")
+    else:
+        tap_source(pool, source, multiplier)
+        update_pool_display()  
 
 root.mainloop()
