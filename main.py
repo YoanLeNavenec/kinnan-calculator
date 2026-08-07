@@ -2,6 +2,51 @@ import tkinter as tk
 from tkinter import ttk
 from cards import doublers, sources, reducers, creature_bonuses, untap_loop_sources, devoted_druid, extra_tap_sources
 from mana import create_pool, get_total_multiplier, tap_source
+import io
+import os
+import urllib.request
+import urllib.parse
+import json
+from PIL import Image, ImageTk
+import time
+
+CACHE_DIR = "image_cache"
+
+def fetch_card_image_url(card_name):
+  url = "https://api.scryfall.com/cards/named?fuzzy=" + urllib.parse.quote(card_name)
+  request = urllib.request.Request(url, headers={
+    "User-Agent": "KinnanManaCalculator/1.0",
+    "Accept" : "application/json"
+  })
+  
+  with urllib.request.urlopen(request) as response:
+    data = json.loads(response.read())
+  return data["image_uris"]["normal"]
+
+print(fetch_card_image_url("Sol Ring"))
+
+def get_cached_image_patch(card_name):
+  safe_name = card_name.replace(" ", "_").replace(",", "").replace("'", "")
+  return os.path.join(CACHE_DIR, safe_name + ".jpg")
+
+def load_card_image_cached(card_name):
+  os.makedirs(CACHE_DIR, exist_ok=True)
+  path = get_cached_image_patch(card_name)
+  
+  if os.path.exists(path):
+    pil_image = Image.open(path)
+  else:
+    image_url = fetch_card_image_url(card_name)
+    request = urllib.request.Request(image_url, headers={"User-Agent":"KinnanManaCalculator/1.0"})
+    with urllib.request.urlopen(request) as response:
+      image_data = response.read()
+    time.sleep(0.1)
+    with open(path, "wb") as f:
+      f.write(image_data)
+    pil_image = Image.open(io.BytesIO(image_data))
+    
+  pil_image = pil_image.resize((150, 210))
+  return ImageTk.PhotoImage(pil_image)
 
 root = tk.Tk()
 root.title("Kinnan Mana Calculator")
@@ -111,6 +156,11 @@ for source in sources:
     card = ttk.Frame(scrollable_frame, relief="ridge", borderwidth=1, padding=5)
     card.pack(fill="x", pady=2)
     
+    photo = load_card_image_cached(source["name"])
+    image_label = ttk.Label(card, image=photo)
+    image_label.pack(anchor="w")
+    source["photo"] = photo
+    
     var = tk.BooleanVar()
     check = ttk.Checkbutton(card, text=source["name"], variable=var)
     check.pack()
@@ -118,8 +168,5 @@ for source in sources:
     
     tap_button = ttk.Button(card, text="Tap", command=lambda s=source: tap_and_update(s))
     tap_button.pack(anchor="w")
-
-root.after(3000, lambda: print([d["name"] for d in doublers if d["var"].get()],
-                                [r["name"] for r in reducers if r["var"].get()]))
 
 root.mainloop()
