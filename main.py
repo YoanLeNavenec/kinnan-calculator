@@ -1,7 +1,7 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox, simpledialog
 from cards import doublers, sources, reducers, creature_bonuses, untap_loop_sources, devoted_druid, extra_tap_sources
-from mana import create_pool, get_total_multiplier, tap_source, is_infinite_loop, add_mana, devoted_druid_total, add_to_battlefield
+from mana import create_pool, get_total_multiplier, tap_source, is_infinite_loop, add_mana, devoted_druid_total, add_to_battlefield, enduring_vitality_count
 import io
 import os
 import urllib.request
@@ -9,7 +9,7 @@ import urllib.parse
 import json
 from PIL import Image, ImageTk
 import time
-from tkinter import messagebox
+
 
 CACHE_DIR = "image_cache"
 
@@ -54,19 +54,19 @@ root.title("Kinnan Mana Calculator")
 root.geometry("600x400")
 
 pool = create_pool()
-batttlefield = []
+battlefield = []
 
 def sync_battlefield():
     all_groups = [sources, untap_loop_sources, extra_tap_sources, [devoted_druid]]
     for group in all_groups:
         for card in group:
-            if card["var"].get():
+            if "var" in card and card["var"].get():
                 already_there = False
-                for permanent in batttlefield:
+                for permanent in battlefield:
                     if permanent["name"] == card["name"]:
                         already_there = True
                 if not already_there:
-                    add_to_battlefield(batttlefield, card["name"], card["type"])
+                    add_to_battlefield(battlefield, card["name"], card["type"])
 
 # ---Pool Section ---
 pool_frame = ttk.Frame(root)
@@ -254,10 +254,43 @@ def new_turn():
     
     devoted_druid_tap_button.config(state="normal")
     tap_twice_check.config(state="normal")
+    enduring_vitality_button.config(state="normal")
     
     update_pool_display()
     
 new_turn_button = ttk.Button(root, text="New Turn", command=new_turn)
 new_turn_button.pack()
+
+enduring_vitality_var = tk.BooleanVar()
+enduring_vitality_check = ttk.Checkbutton(root, text="Enduring Vitality", variable=enduring_vitality_var)
+enduring_vitality_check.pack()
+
+def apply_enduring_vitality():
+    if not enduring_vitality_var.get():
+        return
+    
+    sync_battlefield()
+    bonus = enduring_vitality_count(battlefield)
+    if bonus == 0:
+        messagebox.showinfo("Enduring Vitality", "No untapped Creatures to tap.")
+        return
+    
+    color = simpledialog.askstring("Enduring Vitality", f"You have {bonus} untapped creatures. What color? (W/U/B/R/G)")
+    if color is None:
+        return
+    color = color.strip().upper()
+    if color not in ["W", "U", "B", "R", "G"]:
+        messagebox.showinfo("Enduring Vitality", "Please enter W, U, B, R or G.")
+        return
+    
+    add_mana(pool, color, bonus)
+    for permanent in battlefield:
+        if permanent["type"] == "creature" and not permanent["tapped"]:
+            permanent["tapped"] = True
+    update_pool_display()
+    enduring_vitality_button.config(state="disabled")
+    
+enduring_vitality_button = ttk.Button(root, text="Apply Enduring Vitality Bonus", command=apply_enduring_vitality)
+enduring_vitality_button.pack()
 
 root.mainloop()
