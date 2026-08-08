@@ -196,7 +196,8 @@ for card in untap_loop_sources:
     card["var"] = var
     
     tap_button = ttk.Button(card_frame, text="Tap", command=lambda s=card: tap_untap_loop(s))
-    tap_button.pack(anchor="w")  
+    tap_button.pack(anchor="w")
+    card["tap_button"] = tap_button
     
 # --- Infinite Loops section ---
 def tap_untap_loop(source):
@@ -208,7 +209,8 @@ def tap_untap_loop(source):
         messagebox.showinfo("Infinite Mana!", f"{source['name']} is an infinite mana loop with your current board.")
     else:
         tap_source(pool, source, multiplier)
-        update_pool_display()  
+        update_pool_display() 
+    source["tap_button"].config(state="disabled") 
 
 # --- Devoted Druid section ---
 ttk.Label(root, text="Devoted Druid").pack()
