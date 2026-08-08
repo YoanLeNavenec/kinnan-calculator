@@ -241,4 +241,23 @@ def tap_devoted_druid():
 devoted_druid_tap_button = ttk.Button(devoted_druid_frame, text="Tap", command=tap_devoted_druid)
 devoted_druid_tap_button.pack(anchor="w")
 
+# --- New Turn section ---
+def new_turn():
+    global pool, battlefield
+    pool = create_pool()
+    battlefield = []
+    
+    for source in sources:
+        source["tap_button"].config(state="normal")
+    for card in untap_loop_sources:
+        card["tap_button"].config(state="normal")
+    
+    devoted_druid_tap_button.config(state="normal")
+    tap_twice_check.config(state="normal")
+    
+    update_pool_display()
+    
+new_turn_button = ttk.Button(root, text="New Turn", command=new_turn)
+new_turn_button.pack()
+
 root.mainloop()
