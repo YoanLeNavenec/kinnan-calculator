@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from cards import doublers, sources, reducers, creature_bonuses, untap_loop_sources, devoted_druid, extra_tap_sources
-from mana import create_pool, get_total_multiplier, tap_source, is_infinite_loop
+from mana import create_pool, get_total_multiplier, tap_source, is_infinite_loop, add_mana, devoted_druid_total, add_to_battlefield
 import io
 import os
 import urllib.request
@@ -90,6 +90,7 @@ def tap_and_update(source):
     multiplier = get_total_multiplier(doublers)
     tap_source(pool, source, multiplier)
     update_pool_display()
+    source["tap_button"].config(state="disabled")
 
 
 # --- Doublers section ---
@@ -182,6 +183,7 @@ for source in sources:
     
     tap_button = ttk.Button(card, text="Tap", command=lambda s=source: tap_and_update(s))
     tap_button.pack(anchor="w")
+    source["tap_button"] = tap_button
     
 ttk.Label(root, text="Untap Loops").pack()
 for card in untap_loop_sources:
@@ -207,5 +209,34 @@ def tap_untap_loop(source):
     else:
         tap_source(pool, source, multiplier)
         update_pool_display()  
+
+# --- Devoted Druid section ---
+ttk.Label(root, text="Devoted Druid").pack()
+devoted_druid_frame = ttk.Frame(root, relief="ridge", borderwidth=1, padding=5)
+devoted_druid_frame.pack(fill="x", pady=2)
+
+devoted_druid_var = tk.BooleanVar()
+check = ttk.Checkbutton(devoted_druid_frame, text=devoted_druid["name"], variable=devoted_druid_var)
+check.pack(anchor="w")
+devoted_druid["var"] = devoted_druid_var
+
+tap_twice_var = tk.BooleanVar()
+tap_twice_check = ttk.Checkbutton(devoted_druid_frame, text="Sacrifice for 2nd tap", variable=tap_twice_var)
+tap_twice_check.pack(anchor="w")
+
+def tap_devoted_druid():
+    for doubler in doublers:
+        doubler["active"] = doubler["var"].get()
+    multiplier = get_total_multiplier(doublers)
+
+    total_mana = devoted_druid_total(devoted_druid, multiplier, tap_twice_var.get())
+    add_mana(pool, devoted_druid["color"], total_mana)
+    update_pool_display() 
+    
+    devoted_druid_tap_button.config(state="disabled")
+    tap_twice_check.config(state="disabled")       
+
+devoted_druid_tap_button = ttk.Button(devoted_druid_frame, text="Tap", command=tap_devoted_druid)
+devoted_druid_tap_button.pack(anchor="w")
 
 root.mainloop()
