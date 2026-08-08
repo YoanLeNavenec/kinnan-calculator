@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox, simpledialog
 from cards import doublers, sources, reducers, creature_bonuses, untap_loop_sources, devoted_druid, extra_tap_sources
-from mana import create_pool, get_total_multiplier, tap_source, is_infinite_loop, add_mana, devoted_druid_total, add_to_battlefield, enduring_vitality_count
+from mana import create_pool, get_total_multiplier, tap_source, is_infinite_loop, add_mana, devoted_druid_total, add_to_battlefield, enduring_vitality_count, tap_with_extra
 import io
 import os
 import urllib.request
@@ -251,6 +251,8 @@ def new_turn():
         source["tap_button"].config(state="normal")
     for card in untap_loop_sources:
         card["tap_button"].config(state="normal")
+    for card in extra_tap_sources:
+        card["tap_button"].config(state="normal")
     
     devoted_druid_tap_button.config(state="normal")
     tap_twice_check.config(state="normal")
@@ -261,6 +263,7 @@ def new_turn():
 new_turn_button = ttk.Button(root, text="New Turn", command=new_turn)
 new_turn_button.pack()
 
+#--- Bambi Section ---
 enduring_vitality_var = tk.BooleanVar()
 enduring_vitality_check = ttk.Checkbutton(root, text="Enduring Vitality", variable=enduring_vitality_var)
 enduring_vitality_check.pack()
@@ -292,5 +295,34 @@ def apply_enduring_vitality():
     
 enduring_vitality_button = ttk.Button(root, text="Apply Enduring Vitality Bonus", command=apply_enduring_vitality)
 enduring_vitality_button.pack()
+
+# --- Extra tappers section ---
+def tap_extra_source(source):
+    sync_battlefield()
+    for doubler in doublers:
+        doubler["active"] = doubler["var"].get()
+    multiplier = get_total_multiplier(doublers)
+    
+    result = tap_with_extra(pool, battlefield, source, multiplier)
+    if result is None:
+        messagebox.showinfo("Can't tap", f"No other untapped permanent availiable to tap alongside {source['name']}.")
+        return
+    
+    update_pool_display()
+    source["tap_button"].config(state="disabled")
+    
+ttk.Label(root, text='Extra-Tap Cards').pack()
+for card in extra_tap_sources:
+    card_frame = ttk.Frame(root, relief="ridge", borderwidth=1, padding=5)
+    card_frame.pack(fill="x", pady=2)
+    
+    var = tk.BooleanVar()
+    check = ttk.Checkbutton(card_frame, text=card["name"], variable=var)
+    check.pack(anchor="w")
+    card["var"] = var
+    
+    tap_button = ttk.Button(card_frame, text="Tap", command=lambda s=card: tap_extra_source(s))
+    tap_button.pack(anchor="w")
+    card["tap_button"] = tap_button
 
 root.mainloop()
