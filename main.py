@@ -142,8 +142,16 @@ doublers_button.pack(fill="x")
 doublers_frame = ttk.Frame(root)
 doublers_frame.pack(fill="x")
 for doubler in doublers:
+    card = ttk.Frame(doublers_frame, relief="ridge", borderwidth=1, padding=5)
+    card.pack(fill="x", pady=2)
+    
+    photo = load_card_image_cached(doubler["name"])
+    image_label = ttk.Label(card, image=photo)
+    image_label.pack(anchor="w")
+    doubler["photo"] = photo
+    
     var = tk.BooleanVar()
-    check = ttk.Checkbutton(doublers_frame, text=doubler["name"], variable=var)
+    check = ttk.Checkbutton(card, text=doubler["name"], variable=var)
     check.pack()
     doubler["var"] = var
 
@@ -164,8 +172,16 @@ reducers_button.pack(fill="x")
 reducers_frame = ttk.Frame(root)
 reducers_frame.pack(fill="x")
 for reducer in reducers:
+    card = ttk.Frame(reducers_frame, relief="ridge", borderwidth=1, padding=5)
+    card.pack(fill="x", pady=2)
+        
+    photo = load_card_image_cached(reducer["name"])
+    image_label = ttk.Label(card, image=photo)
+    image_label.pack(anchor="w")
+    reducer["photo"] = photo
+        
     var = tk.BooleanVar()
-    check = ttk.Checkbutton(reducers_frame, text=reducer["name"], variable=var)
+    check = ttk.Checkbutton(card, text=reducer["name"], variable=var)
     check.pack()
     reducer["var"] = var
 
