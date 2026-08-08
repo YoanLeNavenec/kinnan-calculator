@@ -13,6 +13,38 @@ import time
 
 CACHE_DIR = "image_cache"
 
+# --- Compress and scroll section ---
+def make_collapsible_scrollable_section(title):
+    is_open = True
+    
+    def toggle():
+        nonlocal is_open
+        if is_open:
+            outer_container.pack_forget()
+            is_open = False
+        else:
+            outer_container.pack(fill="both", expand=True, after=button)
+            is_open = True
+            
+    button = ttk.Button(root, text=title, command=toggle)
+    button.pack(fill="x")
+    
+    outer_container = ttk.Frame(root)
+    canvas = tk.Canvas(outer_container)
+    scrollbar = ttk.Scrollbar(outer_container, orient="vertical", command=canvas.yview)
+    inner_frame = ttk.Frame(canvas)
+    
+    inner_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+    canvas.create_window((0,0), window=inner_frame, anchor="nw")
+    canvas.configure(yscrollcommand=scrollbar.set)
+    
+    outer_container.pack(fill="both", expand=True)
+    canvas.pack(side="left", fill="both", expand=True)
+    scrollbar.pack(side="right", fill="y")
+    
+    return inner_frame
+
+# --- Fetch Card Image section ---
 def fetch_card_image_url(card_name):
   url = "https://api.scryfall.com/cards/named?fuzzy=" + urllib.parse.quote(card_name)
   request = urllib.request.Request(url, headers={
@@ -101,7 +133,7 @@ def toggle_doublers():
         doublers_frame.pack_forget()
         doublers_open = False
     else:
-        doublers_frame.pack(fill="x")
+        doublers_frame.pack(fill="x", after=doublers_button)
         doublers_open = True
 
 doublers_button = ttk.Button(root, text="Doublers", command=toggle_doublers)
@@ -123,7 +155,7 @@ def toggle_reducers():
         reducers_frame.pack_forget()
         reducers_open = False
     else:
-        reducers_frame.pack(fill="x")
+        reducers_frame.pack(fill="x", after=reducers_button)
         reducers_open = True
 
 reducers_button = ttk.Button(root, text="Reducers", command=toggle_reducers)
@@ -137,38 +169,11 @@ for reducer in reducers:
     check.pack()
     reducer["var"] = var
 
-# --- Sources section ---
-sources_open = True
-def toggle_sources():
-    global sources_open
-    if sources_open:
-        container.pack_forget()
-        sources_open = False
-    else:
-        container.pack(fill="both", expand=True)
-        sources_open = True
 
-sources_button = ttk.Button(root, text="Mana Sources", command=toggle_sources)
-sources_button.pack(fill="x")
-
-container = ttk.Frame(root)
-canvas = tk.Canvas(container)
-scrollbar = ttk.Scrollbar(container, orient="vertical", command=canvas.yview)
-scrollable_frame = ttk.Frame(canvas)
-
-scrollable_frame.bind(
-    "<Configure>",
-    lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
-)
-canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
-canvas.configure(yscrollcommand=scrollbar.set)
-
-container.pack(fill="both", expand=True)
-canvas.pack(side="left", fill="both", expand=True)
-scrollbar.pack(side="right", fill="y")
-
+# --- Mana Sources section ---
+source_frame = make_collapsible_scrollable_section("Mana Sources")
 for source in sources:
-    card = ttk.Frame(scrollable_frame, relief="ridge", borderwidth=1, padding=5)
+    card = ttk.Frame(source_frame, relief="ridge", borderwidth=1, padding=5)
     card.pack(fill="x", pady=2)
     
     photo = load_card_image_cached(source["name"])
@@ -185,10 +190,15 @@ for source in sources:
     tap_button.pack(anchor="w")
     source["tap_button"] = tap_button
     
-ttk.Label(root, text="Untap Loops").pack()
+untap_loops_frame = make_collapsible_scrollable_section("Untap Loops")
 for card in untap_loop_sources:
-    card_frame = ttk.Frame(root, relief="ridge", borderwidth=1, padding=5)
+    card_frame = ttk.Frame(untap_loops_frame, relief="ridge", borderwidth=1, padding=5)
     card_frame.pack(fill="x", pady=2)
+    
+    photo = load_card_image_cached(card["name"])
+    image_label = ttk.Label(card_frame, image=photo)
+    image_label.pack(anchor="w")
+    card["photo"] = photo
         
     var = tk.BooleanVar()
     check = ttk.Checkbutton(card_frame, text=card["name"], variable=var)
@@ -213,9 +223,14 @@ def tap_untap_loop(source):
     source["tap_button"].config(state="disabled") 
 
 # --- Devoted Druid section ---
-ttk.Label(root, text="Devoted Druid").pack()
-devoted_druid_frame = ttk.Frame(root, relief="ridge", borderwidth=1, padding=5)
+devoted_druid_section = make_collapsible_scrollable_section("Devoted Druid")
+devoted_druid_frame = ttk.Frame(devoted_druid_section, relief="ridge", borderwidth=1, padding=5)
 devoted_druid_frame.pack(fill="x", pady=2)
+
+photo = load_card_image_cached("devoted druid")
+image_label = ttk.Label(devoted_druid_frame, image=photo)
+image_label.pack(anchor="w")
+devoted_druid["photo"] = photo
 
 devoted_druid_var = tk.BooleanVar()
 check = ttk.Checkbutton(devoted_druid_frame, text=devoted_druid["name"], variable=devoted_druid_var)
@@ -311,10 +326,15 @@ def tap_extra_source(source):
     update_pool_display()
     source["tap_button"].config(state="disabled")
     
-ttk.Label(root, text='Extra-Tap Cards').pack()
+extra_tap_section = make_collapsible_scrollable_section("Extra-Tap Cards")
 for card in extra_tap_sources:
-    card_frame = ttk.Frame(root, relief="ridge", borderwidth=1, padding=5)
+    card_frame = ttk.Frame(extra_tap_section, relief="ridge", borderwidth=1, padding=5)
     card_frame.pack(fill="x", pady=2)
+    
+    photo = load_card_image_cached(card["name"])
+    image_label = ttk.Label(card_frame, image=photo)
+    image_label.pack(anchor="w")
+    card["photo"] = photo
     
     var = tk.BooleanVar()
     check = ttk.Checkbutton(card_frame, text=card["name"], variable=var)
